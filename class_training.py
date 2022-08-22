@@ -18,12 +18,17 @@ def classification(config):
         mywandb = get_wandb(config)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = get_model(device)
+
     loss_function = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.AdamW(model.parameters(), config.learning_rate)
 
     val_interval = 2
     best_metric = -1
     for fold in range(5):
+        if config.resume:
+            resume_path = os.path.join("saved_models","fold_{}classification_model.pth".format(fold))
+            print("resume from {}".format(resume_path))
+            model.load_state_dict(torch.load(resume_path), strict=True)
         train_loader, val_loader = get_class_data_loaders(config,fold)
         print(" train loader length {} val length {}".format(len(train_loader),len(val_loader)))
         epochs  =200
@@ -35,12 +40,13 @@ def classification(config):
                 loss_one_epoch,train_acc = train_one_epoch(device,  loss_function, model, optimizer, softmax_l, train_loader,epoch)
                 if epoch % val_interval == 0:
                     valid_metric_epoch = valid_one_epoch(device,  model, softmax_l, val_loader)
-                    if valid_metric_epoch > best_metric:
-                        if not os.path.exists("saved_models"):
-                            os.mkdir("saved_models")
-                        best_metric = valid_metric_epoch
-                        torch.save(model.state_dict(), os.path.join("saved_models", "fold_{}classification_model.pth".format(fold)))
-                        print("saved new best metric model")
+                    if config.developing:
+                        if valid_metric_epoch > best_metric:
+                            if not os.path.exists("saved_models"):
+                                os.mkdir("saved_models")
+                            best_metric = valid_metric_epoch
+                            torch.save(model.state_dict(), os.path.join("saved_models", "fold_{}classification_model.pth".format(fold)))
+                            print("saved new best metric model")
                 train_info["Fold{} classification train loss ".format(fold)] = loss_one_epoch
                 train_info["Fold{} classification train acc ".format(fold)] = train_acc
                 train_info["Fold{} classification valid acc ".format(fold)] = valid_metric_epoch
@@ -58,7 +64,7 @@ def get_model(device):
     model_name = "tf_mobilenetv3_small_100"
     config.run_name = "model {}".format(model_name)
     model = timm.create_model(model_name,num_classes=3,in_chans=3,pretrained=True,
-                              drop_rate=0.5, drop_path_rate=0.5).to(device)
+                              drop_rate=0.3, drop_path_rate=0.3).to(device)
     return model
 
 

@@ -37,16 +37,16 @@ def get_class_data_loaders(config,fold):
     ])
     kf = StratifiedKFold(n_splits=5, shuffle=True)
 
-    # labels_use_for_split = [np.load(i["label"]) for i in data_dicts]
-    # labels_use_for_split=np.array(labels_use_for_split).flatten()
-    # print(np.bincount(labels_use_for_split[0:1582]))
+    labels_use_for_split = [np.load(i["label"]) for i in data_dicts]
+    labels_use_for_split=np.array(labels_use_for_split).flatten()
+    print(np.bincount(labels_use_for_split[0:1582]))
 
-    # for idx, (train_idx, val_idx) in enumerate(kf.split(labels_use_for_split, labels_use_for_split)):
-    #     if idx == fold :
-    #         train_files = data_dicts[train_idx]
-    #         val_files = data_dicts[val_idx]
-    splitIndex = int(len(data_dicts) * 0.8)
-    train_files, val_files = data_dicts[:splitIndex], data_dicts[splitIndex:]
+    for idx, (train_idx, val_idx) in enumerate(kf.split(labels_use_for_split, labels_use_for_split)):
+        if idx == fold :
+            train_files = data_dicts[train_idx]
+            val_files = data_dicts[val_idx]
+    # splitIndex = int(len(data_dicts) * 0.8)
+    # train_files, val_files = data_dicts[:splitIndex], data_dicts[splitIndex:]
     print("train file length {} val_files length{} ".format(len(train_files),len(val_files)))
 
     train_transforms = Compose([
@@ -75,17 +75,17 @@ def get_class_data_loaders(config,fold):
         EnsureTyped(keys=["image", "label"])
     ])
 
-    # train_ds = CacheDataset(
-    #     data=train_files, transform=train_transforms,
-    # )
-    train_ds = Dataset(data=train_files, transform=train_transforms)
+    train_ds = CacheDataset(
+        data=train_files, transform=train_transforms,cache_num=1000,hash_as_key=True
+    )
+    # train_ds = Dataset(data=train_files, transform=train_transforms)
 
     train_loader = DataLoader(train_ds, batch_size=30, shuffle=True, num_workers=0)
-
+    #
     val_ds = Dataset(
-        data=val_files, transform=train_transforms)
+        data=val_files, transform=val_transforms)
     # val_ds = CacheDataset(
-    #     data=val_files, transform=train_transforms)
+    #     data=val_files, transform=val_transforms)
     val_org_loader = DataLoader(val_ds, batch_size=30, shuffle=False, num_workers=0)
 
     check_ds = Dataset(data=val_files, transform=val_transforms)
