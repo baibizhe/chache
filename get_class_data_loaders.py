@@ -19,15 +19,15 @@ from sklearn.model_selection import StratifiedKFold
 
 
 def get_class_data_loaders(config,fold):
-    data_dir = os.path.join("data", "train","image")
-    all_images = os.listdir(data_dir)
+    data_dir = config.data_dir
+    all_images = os.listdir(os.path.join(data_dir,"image"))
     image_paths = []
     label_paths = []
     for file_name in all_images:
         file_name_pure = file_name.split(".jpg")[0]
-        image_path  =  os.path.join(data_dir,file_name)
+        image_path  =  os.path.join(data_dir,"image",file_name)
         image_paths.append(image_path)
-        label_path = os.path.join("data","train","label",file_name_pure+".npy")
+        label_path = os.path.join(data_dir,"label",file_name_pure+".npy")
         label_paths.append(label_path)
 
 

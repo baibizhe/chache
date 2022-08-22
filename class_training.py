@@ -1,3 +1,4 @@
+import argparse
 import os
 
 import monai
@@ -119,4 +120,10 @@ def train_one_epoch(device,  loss_function, model, optimizer, softmax_l, train_l
 
 if __name__ == "__main__":
     config.run_name = "chache class training kfold"
+    parser = argparse.ArgumentParser(description='Medical Semi-supervised Semantic Segmentation')
+    parser.add_argument( "--data-dir", default=os.path.join("data","train"), type=str,
+                        help="select the architecture in use")
+    cmd_line_var = parser.parse_args()
+    config.update(vars(cmd_line_var))
+    print(config)
     classification(config)
